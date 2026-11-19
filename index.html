@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penjelajah Nusantara - IPAS Kelas 4 SD</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Ramah Anak (Fredoka & Nunito) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(180deg, #BAE6FD 0%, #E0F2FE 45%, #DCFCE7 100%);
+            min-height: 100vh;
+            user-select: none;
+        }
+
+        h1, h2, h3, .font-title {
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        /* Animasi Elemen */
+        @keyframes popIn {
+            0% { transform: scale(0.88); opacity: 0; }
+            65% { transform: scale(1.03); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-7px); }
+        }
+
+        @keyframes shakeX {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            50% { transform: translateX(6px); }
+            75% { transform: translateX(-4px); }
+        }
+
+        .animate-pop-in {
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .animate-float {
+            animation: floatSlow 3.2s ease-in-out infinite;
+        }
+
+        .animate-shake {
+            animation: shakeX 0.4s ease-in-out;
+        }
+
+        /* Kartu Pilihan Jawaban */
+        .choice-btn {
+            transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 5px 0 #CBD5E1;
+        }
+
+        .choice-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            border-color: #0284C7;
+            box-shadow: 0 8px 0 #0284C7;
+        }
+
+        .choice-btn:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #0284C7;
+        }
+
+        .choice-btn.correct {
+            background-color: #DCFCE7 !important;
+            border-color: #16A34A !important;
+            box-shadow: 0 5px 0 #15803D !important;
+            color: #14532D !important;
+        }
+
+        .choice-btn.wrong {
+            background-color: #FEE2E2 !important;
+            border-color: #DC2626 !important;
+            box-shadow: 0 5px 0 #B91C1C !important;
+            color: #7F1D1D !important;
+        }
+
+        /* Tombol Utama 3D */
+        .btn-primary-3d {
+            transition: all 0.15s ease;
+            box-shadow: 0 6px 0 #047857;
+        }
+        .btn-primary-3d:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 #047857;
+        }
+        .btn-primary-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #047857;
+        }
+    </style>
+</head>
+<body class="flex flex-col justify-between p-3 sm:p-6 text-slate-800">
+
+    <!-- HEADER APLIKASI -->
+    <header class="w-full max-w-4xl mx-auto flex flex-wrap items-center justify-between gap-3 bg-white/95 backdrop-blur-md px-4 py-3 rounded-3xl shadow-md border-2 border-sky-200">
+        <div class="flex items-center gap-3">
+            <div class="w-11 h-11 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-2xl shadow-inner text-white">
+                🧭
+            </div>
+            <div>
+                <h1 class="text-lg sm:text-xl font-bold text-teal-700 leading-tight">Penjelajah Nusantara</h1>
+                <p class="text-xs sm:text-sm font-semibold text-slate-500">IPAS Kelas 4 SD • Bentang Alam Indonesia</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-3">
+            <button id="btn-sound" onclick="toggleSound()" title="Suara Efek" class="p-2.5 rounded-2xl bg-sky-100 hover:bg-sky-200 text-sky-800 font-bold transition cursor-pointer">
+                🔊
+            </button>
+            <div id="hud-panel" class="hidden flex items-center gap-2 sm:gap-3">
+                <div class="bg-sky-100 border-2 border-sky-300 px-3 py-1.5 rounded-2xl text-sky-800 font-bold text-sm sm:text-base">
+                    Pos <span id="hud-qnum">1</span>/10
+                </div>
+                <div class="bg-amber-100 border-2 border-amber-300 px-3 py-1.5 rounded-2xl text-amber-800 font-bold text-sm sm:text-base flex items-center gap-1">
+                    🏅 <span id="hud-score">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- KONTEN UTAMA -->
+    <main class="w-full max-w-4xl mx-auto my-auto py-4">
+
+        <!-- 1. LAYAR PEMBUKA (START SCREEN) -->
+        <section id="screen-start" class="bg-white rounded-3xl p-6 sm:p-10 shadow-xl border-4 border-teal-300 text-center animate-pop-in">
+            <!-- Ilustrasi Pemandangan Nusantara SVG -->
+            <div class="w-full max-w-md mx-auto mb-5 rounded-2xl overflow-hidden border-2 border-sky-200 shadow-sm animate-float" id="hero-scenery">
+                <!-- Dirender via JS -->
+            </div>
+
+            <span class="inline-block bg-teal-100 text-teal-800 font-extrabold px-4 py-1.5 rounded-full text-xs sm:text-sm mb-3 border border-teal-300">
+                Ekspedisi Geografi & Alam Indonesia 🇮🇩
+            </span>
+
+            <h2 class="text-3xl sm:text-4xl font-bold text-slate-800 mb-3">
+                Jelajahi Keindahan <span class="text-teal-600">Bentang Alam Nusantara!</span>
+            </h2>
+
+            <p class="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto mb-6 leading-relaxed">
+                Dari puncak gunung yang sejuk hingga pesisir pantai yang luas, mari kenali ciri-ciri bentang alam Indonesia, mata pencaharian penduduknya, serta cara melestarikannya!
+            </p>
+
+            <!-- Tahapan Ekspedisi -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto mb-8 text-left">
+                <div class="bg-sky-50 border-2 border-sky-200 p-3.5 rounded-2xl">
+                    <div class="font-bold text-sky-800 text-sm">🏔️ Pos 1 - 4: Mengenal Ciri</div>
+                    <p class="text-xs text-slate-600 mt-1">Amati ilustrasi alam dan kenali ciri khas pantai, gunung, sungai, dan dataran.</p>
+                </div>
+                <div class="bg-emerald-50 border-2 border-emerald-200 p-3.5 rounded-2xl">
+                    <div class="font-bold text-emerald-800 text-sm">🌾 Pos 5 - 7: Pemanfaatan</div>
+                    <p class="text-xs text-slate-600 mt-1">Cocokkan pekerjaan penduduk dan hasil alam dengan bentang alamnya.</p>
+                </div>
+                <div class="bg-amber-50 border-2 border-amber-200 p-3.5 rounded-2xl">
+                    <div class="font-bold text-amber-800 text-sm">🌱 Pos 8 - 10: Pelestarian</div>
+                    <p class="text-xs text-slate-600 mt-1">Pecahkan studi kasus menjaga kelestarian alam Indonesia.</p>
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="btn-primary-3d bg-emerald-500 hover:bg-emerald-400 text-white font-title text-xl sm:text-2xl font-bold px-10 py-4 rounded-2xl cursor-pointer">
+                Mulai Ekspedisi 🎒
+            </button>
+        </section>
+
+        <!-- 2. LAYAR PERMAINAN (GAMEPLAY SCREEN) -->
+        <section id="screen-game" class="hidden space-y-5">
+
+            <!-- Bilah Progres & Tahap -->
+            <div class="bg-white/95 p-3.5 rounded-2xl shadow-sm border-2 border-sky-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <span id="stage-badge" class="px-3 py-1 rounded-xl text-xs sm:text-sm font-extrabold bg-sky-100 text-sky-800 border border-sky-300">
+                        Tahap 1: Mengenal Bentang Alam
+                    </span>
+                </div>
+                <div class="w-full sm:w-56 flex items-center gap-2">
+                    <div class="w-full bg-slate-200 h-3.5 rounded-full overflow-hidden p-0.5">
+                        <div id="progress-bar" class="bg-gradient-to-r from-teal-400 to-emerald-500 h-full rounded-full transition-all duration-500" style="width: 10%;"></div>
+                    </div>
+                    <span id="progress-text" class="text-xs font-extrabold text-slate-500 shrink-0">10%</span>
+                </div>
+            </div>
+
+            <!-- Kartu Pertanyaan & Ilustrasi -->
+            <div class="bg-white rounded-3xl p-5 sm:p-7 shadow-lg border-4 border-teal-300">
+                <div class="flex flex-col md:flex-row items-center gap-6">
+                    <!-- Kotak Ilustrasi SVG Bentang Alam -->
+                    <div id="question-illustration" class="w-full md:w-64 h-44 sm:h-48 shrink-0 rounded-2xl overflow-hidden border-2 border-slate-200 shadow-inner bg-sky-50 flex items-center justify-center">
+                        <!-- SVG dirender JS -->
+                    </div>
+
+                    <!-- Teks Soal -->
+                    <div class="flex-1 text-center md:text-left space-y-3">
+                        <span id="question-tag" class="inline-block text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-teal-100 text-teal-800">
+                            Ciri-Ciri Bentang Alam
+                        </span>
+                        <h3 id="question-text" class="text-lg sm:text-2xl font-bold text-slate-800 leading-snug">
+                            Pertanyaan akan muncul di sini...
+                        </h3>
+                        <p id="question-hint" class="text-xs sm:text-sm font-semibold text-slate-500">
+                            Pilih salah satu jawaban yang paling tepat di bawah ini!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid 4 Pilihan Jawaban -->
+            <div id="choices-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
+                <!-- Tombol pilihan dirender JS -->
+            </div>
+
+            <!-- Kotak Umpan Balik + Fakta Menarik Nusantara -->
+            <div id="feedback-panel" class="hidden rounded-3xl p-5 sm:p-6 border-4 shadow-xl animate-pop-in space-y-4">
+                <!-- Status Benar/Salah -->
+                <div class="flex items-start gap-4">
+                    <div id="fb-emoji" class="text-4xl sm:text-5xl shrink-0">🌟</div>
+                    <div>
+                        <h4 id="fb-title" class="text-xl sm:text-2xl font-bold font-title mb-1">Tepat Sekali!</h4>
+                        <p id="fb-desc" class="text-sm sm:text-base font-semibold leading-relaxed">
+                            Penjelasan jawaban muncul di sini.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Kartu Fakta Menarik Nusantara -->
+                <div class="bg-white/90 border-2 border-amber-300 rounded-2xl p-4 flex items-start gap-3.5 shadow-sm">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl shrink-0 font-bold">
+                        🇮🇩
+                    </div>
+                    <div>
+                        <div class="text-xs font-extrabold uppercase tracking-wider text-amber-700 mb-0.5">
+                            Fakta Menarik Nusantara
+                        </div>
+                        <p id="fb-funfact" class="text-xs sm:text-sm font-bold text-slate-700 leading-relaxed">
+                            Fakta menarik seputar alam Indonesia...
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-1">
+                    <button id="btn-next" onclick="nextQuestion()" class="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-white font-title font-bold text-lg px-8 py-3.5 rounded-2xl shadow-md transition cursor-pointer">
+                        Lanjut ke Pos Berikutnya ➡️
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- 3. LAYAR HASIL AKHIR (RESULT SCREEN) -->
+        <section id="screen-result" class="hidden bg-white rounded-3xl p-6 sm:p-10 shadow-xl border-4 border-teal-300 text-center animate-pop-in">
+            <div class="inline-block bg-teal-100 text-teal-800 font-extrabold px-4 py-1.5 rounded-full text-sm mb-3">
+                Ekspedisi Nusantara Selesai! 🎉
+            </div>
+
+            <h2 id="result-rank" class="text-3xl sm:text-4xl font-bold text-slate-800 mb-2">
+                Penjelajah Utama Nusantara!
+            </h2>
+
+            <!-- Bintang Predikat -->
+            <div id="result-stars" class="flex justify-center gap-3 text-5xl sm:text-6xl my-5">
+                <span>⭐</span><span>⭐</span><span>⭐</span>
+            </div>
+
+            <!-- Ringkasan Skor -->
+            <div class="max-w-md mx-auto bg-sky-50 border-2 border-sky-200 rounded-3xl p-5 mb-6">
+                <div class="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-wider">Skor Ekspedisi Kamu</div>
+                <div class="text-5xl sm:text-6xl font-extrabold text-teal-600 font-title my-1">
+                    <span id="final-score">100</span> <span class="text-2xl text-slate-400">/ 100</span>
+                </div>
+                <p id="result-summary" class="text-slate-600 font-semibold text-sm sm:text-base mt-2">
+                    Hebat! Kamu mengenal bentang alam Indonesia dan cara menjaganya dengan sangat baik.
+                </p>
+            </div>
+
+            <button onclick="startGame()" class="btn-primary-3d bg-emerald-500 hover:bg-emerald-400 text-white font-title text-xl font-bold px-8 py-4 rounded-2xl cursor-pointer">
+                🔄 Main Lagi
+            </button>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="text-center text-xs sm:text-sm font-semibold text-slate-500 py-2">
+        Media Belajar Interaktif IPAS Kelas 4 SD • Bentang Alam & Pemanfaatannya
+    </footer>
+
+    <!-- LOGIKA GAME & ILUSTRASI SVG -->
+    <script>
+        /**
+         * GENERATOR ILUSTRASI PEMANDANGAN ALAM SVG (RAMAH ANAK & CERAH)
+         */
+        const SCENERY_SVGS = {
+            nusantara: `
+                <svg viewBox="0 0 400 180" class="w-full h-full object-cover">
+                    <defs>
+                        <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#38BDF8"/>
+                            <stop offset="100%" stop-color="#BAE6FD"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="400" height="180" fill="url(#skyGrad)"/>
+                    <!-- Matahari & Awan -->
+                    <circle cx="330" cy="40" r="22" fill="#FDE047"/>
+                    <g fill="#FFFFFF" opacity="0.9">
+                        <circle cx="80" cy="42" r="14"/><circle cx="96" cy="38" r="18"/><circle cx="114" cy="44" r="13"/>
+                    </g>
+                    <!-- Gunung di Kejauhan -->
+                    <polygon points="40,135 120,45 200,135" fill="#0D9488"/>
+                    <polygon points="120,45 102,66 114,62 120,70 128,61 138,66" fill="#F0FDFA"/>
+                    <polygon points="140,135 230,55 320,135" fill="#14B8A6"/>
+                    <!-- Bukit Hijau & Sawah -->
+                    <path d="M0,125 Q100,105 220,130 T400,120 L400,180 L0,180 Z" fill="#22C55E"/>
+                    <!-- Laut / Pantai di Kanan -->
+                    <path d="M240,135 Q320,130 400,140 L400,180 L220,180 Z" fill="#0284C7"/>
+                    <path d="M235,137 Q315,132 400,142" stroke="#FEF08A" stroke-width="5" fill="none"/>
+                </svg>
+            `,
+            pantai: `
+                <svg viewBox="0 0 300 200" class="w-full h-full object-cover">
+                    <rect width="300" height="200" fill="#7DD3FC"/>
+                    <circle cx="245" cy="42" r="22" fill="#FACC15"/>
+                    <!-- Laut Biru & Ombak -->
+                    <rect x="0" y="105" width="300" height="50" fill="#0284C7"/>
+                    <path d="M10,120 Q35,114 60,120 T110,120" stroke="#BAE6FD" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <path d="M160,132 Q185,126 210,132 T260,132" stroke="#BAE6FD" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <!-- Pasir Pantai -->
+                    <path d="M0,142 Q150,132 300,148 L300,200 L0,200 Z" fill="#FDE68A"/>
+                    <!-- Pohon Kelapa -->
+                    <path d="M55,165 Q65,115 48,75" stroke="#92400E" stroke-width="8" fill="none" stroke-linecap="round"/>
+                    <path d="M48,75 Q20,65 12,88" stroke="#16A34A" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <path d="M48,75 Q75,60 88,82" stroke="#16A34A" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <path d="M48,75 Q25,50 18,62" stroke="#22C55E" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <path d="M48,75 Q70,48 82,58" stroke="#22C55E" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <circle cx="45" cy="82" r="4" fill="#78350F"/><circle cx="53" cy="82" r="4" fill="#78350F"/>
+                </svg>
+            `,
+            dataranTinggi: `
+                <svg viewBox="0 0 300 200" class="w-full h-full object-cover">
+                    <rect width="300" height="200" fill="#BAE6FD"/>
+                    <!-- Awan Sejuk -->
+                    <g fill="#FFFFFF" opacity="0.9">
+                        <circle cx="65" cy="40" r="15"/><circle cx="82" cy="36" r="19"/><circle cx="100" cy="42" r="14"/>
+                    </g>
+                    <!-- Pegunungan Latar -->
+                    <polygon points="-10,150 90,55 190,150" fill="#0F766E"/>
+                    <polygon points="110,150 215,65 320,150" fill="#115E59"/>
+                    <!-- Terasering Kebun Teh -->
+                    <path d="M0,120 Q150,95 300,125 L300,200 L0,200 Z" fill="#16A34A"/>
+                    <path d="M0,145 Q150,120 300,150 L300,200 L0,200 Z" fill="#22C55E"/>
+                    <path d="M0,170 Q150,148 300,175 L300,200 L0,200 Z" fill="#4ADE80"/>
+                </svg>
+            `,
+            dataranRendah: `
+                <svg viewBox="0 0 300 200" class="w-full h-full object-cover">
+                    <rect width="300" height="200" fill="#93C5FD"/>
+                    <circle cx="55" cy="42" r="20" fill="#FDE047"/>
+                    <!-- Hamparan Datar Luas -->
+                    <rect x="0" y="115" width="300" height="85" fill="#86EFAC"/>
+                    <!-- Petak Sawah & Jalan -->
+                    <polygon points="20,195 95,120 145,120 110,195" fill="#4ADE80" stroke="#16A34A" stroke-width="2"/>
+                    <polygon points="115,195 150,120 195,120 190,195" fill="#FACC15" stroke="#CA8A04" stroke-width="2"/>
+                    <!-- Rumah & Gedung Kota -->
+                    <rect x="210" y="88" width="26" height="32" fill="#F87171" rx="2"/>
+                    <polygon points="206,88 223,72 240,88" fill="#B91C1C"/>
+                    <rect x="245" y="72" width="30" height="48" fill="#60A5FA" rx="2"/>
+                    <rect x="252" y="80" width="6" height="6" fill="#FEF08A"/><rect x="263" y="80" width="6" height="6" fill="#FEF08A"/>
+                    <rect x="252" y="94" width="6" height="6" fill="#FEF08A"/><rect x="263" y="94" width="6" height="6" fill="#FEF08A"/>
+                </svg>
+            `,
+            sungai: `
+                <svg viewBox="0 0 300 200" class="w-full h-full object-cover">
+                    <rect width="300" height="200" fill="#BAE6FD"/>
+                    <!-- Bukit Hulu -->
+                    <polygon points="0,115 75,55 155,115" fill="#15803D"/>
+                    <polygon points="130,115 225,50 310,115" fill="#166534"/>
+                    <!-- Daratan Hijau -->
+                    <rect x="0" y="105" width="300" height="95" fill="#4ADE80"/>
+                    <!-- Aliran Sungai Berkelok dari Hulu ke Hilir -->
+                    <path d="M145,105 C120,125 190,140 140,165 C100,182 165,195 150,200 L195,200 C210,190 145,180 185,160 C230,138 155,122 162,105 Z" fill="#0EA5E9"/>
+                    <!-- Batu & Pohon -->
+                    <circle cx="65" cy="145" r="14" fill="#15803D"/>
+                    <circle cx="240" cy="155" r="16" fill="#15803D"/>
+                </svg>
+            `,
+            gunung: `
+                <svg viewBox="0 0 300 200" class="w-full h-full object-cover">
+                    <rect width="300" height="200" fill="#7DD3FC"/>
+                    <!-- Asap Kawah Tipis -->
+                    <circle cx="150" cy="28" r="10" fill="#F1F5F9" opacity="0.85"/>
+                    <circle cx="162" cy="18" r="13" fill="#FFFFFF" opacity="0.9"/>
+                    <!-- Gunung Tinggi Menjulang -->
+                    <polygon points="25,185 150,35 275,185" fill="#047857"/>
+                    <polygon points="150,35 112,80 132,74 150,86 168,74 188,80" fill="#A7F3D0"/>
+                    <!-- Kaki Gunung -->
+                    <path d="M0,170 Q150,150 300,170 L300,200 L0,200 Z" fill="#22C55E"/>
+                </svg>
+            `,
+            danau: `
+                <svg viewBox="0 0 300 200" class="w-full h-full object-cover">
+                    <rect width="300" height="200" fill="#BAE6FD"/>
+                    <!-- Perbukitan Mengelilingi Cekungan -->
+                    <path d="M0,95 Q80,55 150,85 T300,80 L300,200 L0,200 Z" fill="#22C55E"/>
+                    <!-- Cekungan Danau Luas di Tengah -->
+                    <ellipse cx="150" cy="145" rx="115" ry="36" fill="#0284C7" stroke="#7DD3FC" stroke-width="3"/>
+                    <path d="M95,142 Q125,137 155,142" stroke="#E0F2FE" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <path d="M145,155 Q175,150 205,155" stroke="#E0F2FE" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                </svg>
+            `,
+            abrasi: `
+                <svg viewBox="0 0 300 200" class="w-full h-full object-cover">
+                    <rect width="300" height="200" fill="#BAE6FD"/>
+                    <!-- Laut & Gelombang -->
+                    <rect x="0" y="95" width="185" height="105" fill="#0284C7"/>
+                    <path d="M120,125 Q150,115 180,125" stroke="#FFFFFF" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    <!-- Daratan Pantai -->
+                    <path d="M165,95 L300,95 L300,200 L150,200 Q175,145 165,95 Z" fill="#FDE68A"/>
+                    <!-- Pohon Bakau (Mangrove) Penahan Ombak -->
+                    <g stroke="#78350F" stroke-width="3">
+                        <line x1="175" y1="125" x2="165" y2="142"/><line x1="175" y1="125" x2="185" y2="142"/>
+                        <line x1="170" y1="160" x2="160" y2="178"/><line x1="170" y1="160" x2="180" y2="178"/>
+                    </g>
+                    <circle cx="175" cy="115" r="16" fill="#15803D"/>
+                    <circle cx="170" cy="150" r="16" fill="#16A34A"/>
+                </svg>
+            `
+        };
+
+        /**
+         * BANK 10 SOAL BERTINGKAT IPAS KELAS 4 SD (BENTANG ALAM & PEMANFAATANNYA)
+         */
+        const QUESTIONS = [
+            // --- POS 1-4: MENGENAL CIRI BENTANG ALAM ---
+            {
+                stage: "Tahap 1: Mengenal Ciri Bentang Alam",
+                tag: "Pos 1 • Ciri Bentang Alam",
+                scenery: "pantai",
+                question: "Wilayah ini merupakan batas antara daratan dan lautan, memiliki hamparan pasir atau karang, serta embusan angin laut yang hangat. Bentang alam apakah ini?",
+                choices: [
+                    { text: "Pantai", icon: "🏖️", isCorrect: true },
+                    { text: "Dataran Tinggi", icon: "⛰️", isCorrect: false },
+                    { text: "Danau", icon: "🏞️", isCorrect: false },
+                    { text: "Lembah", icon: "🌄", isCorrect: false }
+                ],
+                explanation: "Pantai adalah daerah perbatasan langsung antara daratan dan laut yang dipengaruhi oleh pasang surut air laut.",
+                funFact: "Indonesia memiliki garis pantai terpanjang kedua di dunia setelah Kanada, yaitu sekitar 99.000 kilometer!"
+            },
+            {
+                stage: "Tahap 1: Mengenal Ciri Bentang Alam",
+                tag: "Pos 2 • Ciri Bentang Alam",
+                scenery: "dataranTinggi",
+                question: "Permukaan bumi ini terletak pada ketinggian lebih dari 500 meter di atas permukaan laut dan memiliki udara yang sejuk hingga dingin. Bentang alam apakah yang dimaksud?",
+                choices: [
+                    { text: "Dataran Tinggi", icon: "🏔️", isCorrect: true },
+                    { text: "Dataran Rendah", icon: "🌾", isCorrect: false },
+                    { text: "Pesisir Pantai", icon: "🌊", isCorrect: false },
+                    { text: "Rawa", icon: "🌿", isCorrect: false }
+                ],
+                explanation: "Dataran tinggi (plateau) berada di ketinggian lebih dari 500 mdpl sehingga udaranya sejuk dan segar.",
+                funFact: "Dataran Tinggi Dieng di Jawa Tengah dijuluki 'Negeri di Atas Awan' karena ketinggiannya mencapai lebih dari 2.000 meter!"
+            },
+            {
+                stage: "Tahap 1: Mengenal Ciri Bentang Alam",
+                tag: "Pos 3 • Ciri Bentang Alam",
+                scenery: "sungai",
+                question: "Aliran air tawar yang besar dan memanjang yang mengalir terus-menerus dari hulu (pegunungan) menuju ke hilir (laut atau danau) disebut...",
+                choices: [
+                    { text: "Sungai", icon: "🏞️", isCorrect: true },
+                    { text: "Selat", icon: "🚢", isCorrect: false },
+                    { text: "Teluk", icon: "⚓", isCorrect: false },
+                    { text: "Tanjung", icon: "🧭", isCorrect: false }
+                ],
+                explanation: "Sungai adalah aliran air tawar alami di permukaan daratan yang mengalir dari tempat tinggi (hulu) ke tempat rendah (hilir).",
+                funFact: "Sungai Kapuas di Kalimantan Barat adalah sungai terpanjang di Indonesia dengan panjang mencapai 1.143 kilometer!"
+            },
+            {
+                stage: "Tahap 1: Mengenal Ciri Bentang Alam",
+                tag: "Pos 4 • Ciri Bentang Alam",
+                scenery: "danau",
+                question: "Cekungan luas di permukaan daratan yang terisi oleh air tawar dan dikelilingi oleh daratan di sekelilingnya disebut...",
+                choices: [
+                    { text: "Danau", icon: "💧", isCorrect: true },
+                    { text: "Samudra", icon: "🌐", isCorrect: false },
+                    { text: "Selat", icon: "⛵", isCorrect: false },
+                    { text: "Muara", icon: "🌊", isCorrect: false }
+                ],
+                explanation: "Danau adalah genangan air yang sangat luas di tengah daratan, bisa terbentuk karena letusan gunung berapi (vulkanik) atau pergeseran kerak bumi (tektonik).",
+                funFact: "Danau Toba di Sumatera Utara adalah danau vulkanik terbesar di dunia yang di tengahnya terdapat Pulau Samosir!"
+            },
+
+            // --- POS 5-7: PEMANFAATAN & MATA PENCAHARIAN ---
+            {
+                stage: "Tahap 2: Pemanfaatan & Pekerjaan",
+                tag: "Pos 5 • Mata Pencaharian",
+                scenery: "dataranTinggi",
+                question: "Penduduk di daerah Puncak (Bogor) dan Ciwidey (Bandung) banyak bekerja sebagai pemetik teh serta petani stroberi dan sayuran. Jenis bentang alam tempat tinggal mereka adalah...",
+                choices: [
+                    { text: "Dataran Tinggi", icon: "🍵", isCorrect: true },
+                    { text: "Pantai", icon: "🦀", isCorrect: false },
+                    { text: "Dataran Rendah", icon: "🏢", isCorrect: false },
+                    { text: "Muara Sungai", icon: "🚤", isCorrect: false }
+                ],
+                explanation: "Tanaman teh, kopi, stroberi, kol, dan wortel tumbuh sangat subur di dataran tinggi yang berudara sejuk.",
+                funFact: "Indonesia merupakan salah satu penghasil teh dan kopi terbaik di dunia yang ditanam di lereng pegunungan Nusantara!"
+            },
+            {
+                stage: "Tahap 2: Pemanfaatan & Pekerjaan",
+                tag: "Pos 6 • Pemanfaatan Alam",
+                scenery: "dataranRendah",
+                question: "Wilayah yang datar dan luas pada ketinggian 0–200 mdpl sangat mudah dibangun jalan raya, pelabuhan, perkantoran, serta hamparan sawah padi yang luas. Wilayah ini adalah...",
+                choices: [
+                    { text: "Dataran Rendah", icon: "🌾", isCorrect: true },
+                    { text: "Puncak Gunung", icon: "🌋", isCorrect: false },
+                    { text: "Ngarai / Jurang", icon: "🧗", isCorrect: false },
+                    { text: "Bukit Terjal", icon: "⛰️", isCorrect: false }
+                ],
+                explanation: "Dataran rendah memiliki permukaan yang rata sehingga memudahkan pembangunan permukiman, pusat ekonomi, transportasi, dan pertanian padi.",
+                funFact: "Sebagian besar kota besar di Indonesia seperti Jakarta, Surabaya, Semarang, dan Makassar berada di wilayah dataran rendah!"
+            },
+            {
+                stage: "Tahap 2: Pemanfaatan & Pekerjaan",
+                tag: "Pos 7 • Mata Pencaharian",
+                scenery: "pantai",
+                question: "Selain menjadi nelayan penangkap ikan, masyarakat yang tinggal di pesisir pantai yang panas dan landai banyak memanfaatkan air laut untuk membuat...",
+                choices: [
+                    { text: "Tambak Garam & Budidaya Rumput Laut", icon: "🧂", isCorrect: true },
+                    { text: "Perkebunan Teh & Apel", icon: "🍎", isCorrect: false },
+                    { text: "Penambangan Batu Bara", icon: "⛏️", isCorrect: false },
+                    { text: "Peternakan Sapi Perah", icon: "🐄", isCorrect: false }
+                ],
+                explanation: "Air laut yang dialirkan ke petak-petak tambak lalu diuapkan oleh sinar matahari menghasilkan kristal garam dapur.",
+                funFact: "Pulau Madura di Jawa Timur dijuluki sebagai 'Pulau Garam' karena menjadi salah satu penghasil garam terbesar di Indonesia!"
+            },
+
+            // --- POS 8-10: STUDI KASUS PELESTARIAN BENTANG ALAM ---
+            {
+                stage: "Tahap 3: Studi Kasus Pelestarian",
+                tag: "Pos 8 • Pelestarian Pantai",
+                scenery: "abrasi",
+                question: "Desa pesisir di Pulau Lombok mengalami pengikisan daratan pantai akibat hantaman ombak besar (abrasi). Tindakan pelestarian paling tepat yang harus dilakukan warga adalah...",
+                choices: [
+                    { text: "Menanam pohon bakau (mangrove) di tepi pantai", icon: "🌱", isCorrect: true },
+                    { text: "Menambang pasir pantai untuk dijual", icon: "🚜", isCorrect: false },
+                    { text: "Menebang seluruh pohon kelapa di pesisir", icon: "🪓", isCorrect: false },
+                    { text: "Mengambil terumbu karang untuk hiasan", icon: "🪸", isCorrect: false }
+                ],
+                explanation: "Akar pohon bakau (mangrove) yang kuat dan rapat mampu menahan gelombang ombak sehingga mencegah abrasi pantai dan menjadi rumah bagi ikan kecil.",
+                funFact: "Indonesia memiliki hutan mangrove terluas di dunia, mencakup sekitar 23% dari total luas mangrove di seluruh bumi!"
+            },
+            {
+                stage: "Tahap 3: Studi Kasus Pelestarian",
+                tag: "Pos 9 • Pelestarian Sungai",
+                scenery: "sungai",
+                question: "Saat musim hujan tiba, daerah hilir sungai sering mengalami banjir karena aliran air tersumbat dan hutan di bagian hulu gundul. Upaya pencegahan yang paling tepat adalah...",
+                choices: [
+                    { text: "Tidak membuang sampah ke sungai & reboisasi di hulu", icon: "🌳", isCorrect: true },
+                    { text: "Membangun rumah tepat di tengah aliran sungai", icon: "🏠", isCorrect: false },
+                    { text: "Membuang limbah pabrik langsung ke sungai", icon: "🏭", isCorrect: false },
+                    { text: "Menebang pohon di lereng gunung untuk kayu bakar", icon: "🪵", isCorrect: false }
+                ],
+                explanation: "Menjaga kebersihan sungai dari sampah membuat aliran lancar, sementara penanaman kembali hutan (reboisasi) di hulu membantu tanah menyerap air hujan.",
+                funFact: "Satu pohon besar dewasa mampu menyerap dan menyimpan ratusan liter air hujan di dalam tanah untuk mencegah banjir dan kekeringan!"
+            },
+            {
+                stage: "Tahap 3: Studi Kasus Pelestarian",
+                tag: "Pos 10 • Pelestarian Gunung & Hutan",
+                scenery: "gunung",
+                question: "Rani dan keluarganya berwisata ke taman nasional di lereng gunung. Agar kelestarian bentang alam pegunungan tetap terjaga, sikap yang wajib mereka lakukan adalah...",
+                choices: [
+                    { text: "Membawa turun kembali sampah & tidak memetik bunga liar", icon: "♻️", isCorrect: true },
+                    { text: "Mencoret-coret batu besar sebagai tanda kenangan", icon: "🖍️", isCorrect: false },
+                    { text: "Menyalakan api unggun di dekat semak kering lalu pergi", icon: "🔥", isCorrect: false },
+                    { text: "Menangkap burung langka untuk dipelihara di rumah", icon: "🦜", isCorrect: false }
+                ],
+                explanation: "Menjaga kebersihan, tidak merusak tumbuhan/batuan, dan melindungi satwa liar menjaga keseimbangan ekosistem pegunungan.",
+                funFact: "Taman Nasional Gunung Rinjani di Nusa Tenggara Barat dan Taman Nasional Bromo Tengger Semeru di Jawa Timur adalah kawasan konservasi yang dilindungi negara!"
+            }
+        ];
+
+        // State Permainan
+        let currentIdx = 0;
+        let score = 0;
+        let answered = false;
+        let soundOn = true;
+        let audioCtx = null;
+
+        // Render ilustrasi pembuka saat halaman selesai dimuat
+        window.onload = function() {
+            document.getElementById('hero-scenery').innerHTML = SCENERY_SVGS.nusantara;
+        };
+
+        /**
+         * Efek Suara Web Audio API
+         */
+        function playTone(type) {
+            if (!soundOn) return;
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.1);
+                    osc.frequency.setValueAtTime(783.99, now + 0.2);
+                    gain.gain.setValueAtTime(0.22, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                    osc.start(now);
+                    osc.stop(now + 0.45);
+                } else if (type === 'wrong') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(310, now);
+                    osc.frequency.linearRampToValueAtTime(220, now + 0.3);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'finish') {
+                    [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.type = 'triangle';
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.frequency.setValueAtTime(freq, now + i * 0.12);
+                        g.gain.setValueAtTime(0.2, now + i * 0.12);
+                        g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.12 + 0.4);
+                        o.start(now + i * 0.12);
+                        o.stop(now + i * 0.12 + 0.4);
+                    });
+                }
+            } catch (err) {
+                console.warn("Audio tidak tersedia:", err);
+            }
+        }
+
+        function toggleSound() {
+            soundOn = !soundOn;
+            document.getElementById('btn-sound').textContent = soundOn ? '🔊' : '🔇';
+        }
+
+        function shuffle(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        /**
+         * Memulai / Mengulang Game
+         */
+        function startGame() {
+            currentIdx = 0;
+            score = 0;
+            answered = false;
+
+            document.getElementById('screen-start').classList.add('hidden');
+            document.getElementById('screen-result').classList.add('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+            document.getElementById('hud-panel').classList.remove('hidden');
+
+            updateHUD();
+            loadQuestion();
+        }
+
+        function updateHUD() {
+            document.getElementById('hud-qnum').textContent = currentIdx + 1;
+            document.getElementById('hud-score').textContent = score;
+            const pct = Math.round(((currentIdx + 1) / QUESTIONS.length) * 100);
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+            document.getElementById('progress-text').textContent = `${pct}%`;
+        }
+
+        /**
+         * Memuat Soal ke Layar
+         */
+        function loadQuestion() {
+            answered = false;
+            const q = QUESTIONS[currentIdx];
+
+            // Sembunyikan panel feedback
+            document.getElementById('feedback-panel').classList.add('hidden');
+
+            // Perbarui info tahap & soal
+            document.getElementById('stage-badge').textContent = q.stage;
+            document.getElementById('question-tag').textContent = q.tag;
+            document.getElementById('question-text').textContent = q.question;
+            document.getElementById('question-illustration').innerHTML = SCENERY_SVGS[q.scenery] || SCENERY_SVGS.nusantara;
+
+            // Render 4 pilihan jawaban secara acak
+            const grid = document.getElementById('choices-grid');
+            grid.innerHTML = '';
+            const letters = ['A', 'B', 'C', 'D'];
+            const randomizedChoices = shuffle(q.choices);
+
+            randomizedChoices.forEach((choice, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'choice-btn bg-white border-4 border-slate-200 rounded-2xl p-4 sm:p-5 text-left flex items-center gap-3.5 cursor-pointer focus:outline-none';
+                btn.dataset.correct = choice.isCorrect;
+
+                btn.innerHTML = `
+                    <span class="w-9 h-9 rounded-xl bg-sky-100 text-sky-800 font-title font-bold text-base flex items-center justify-center shrink-0 pointer-events-none">
+                        ${letters[idx]}
+                    </span>
+                    <span class="text-2xl shrink-0 pointer-events-none">${choice.icon}</span>
+                    <span class="font-bold text-base sm:text-lg text-slate-800 leading-snug pointer-events-none">
+                        ${choice.text}
+                    </span>
+                `;
+
+                btn.onclick = () => selectChoice(btn, choice);
+                grid.appendChild(btn);
+            });
+        }
+
+        /**
+         * Menangani Pilihan Siswa & Menampilkan Fakta Menarik Nusantara
+         */
+        function selectChoice(selectedBtn, choiceObj) {
+            if (answered) return;
+            answered = true;
+
+            const q = QUESTIONS[currentIdx];
+            const allBtns = document.querySelectorAll('.choice-btn');
+
+            allBtns.forEach(b => {
+                b.disabled = true;
+                b.classList.remove('cursor-pointer');
+                if (b.dataset.correct === 'true') {
+                    b.classList.add('correct');
+                }
+            });
+
+            const panel = document.getElementById('feedback-panel');
+            const emoji = document.getElementById('fb-emoji');
+            const title = document.getElementById('fb-title');
+            const desc = document.getElementById('fb-desc');
+            const funFact = document.getElementById('fb-funfact');
+            const nextBtn = document.getElementById('btn-next');
+
+            nextBtn.textContent = (currentIdx === QUESTIONS.length - 1)
+                ? 'Lihat Hasil Ekspedisi 🏆'
+                : 'Lanjut ke Pos Berikutnya ➡️';
+
+            if (choiceObj.isCorrect) {
+                score += 10;
+                updateHUD();
+                playTone('correct');
+
+                panel.className = 'rounded-3xl p-5 sm:p-6 border-4 border-emerald-400 bg-emerald-50 text-emerald-950 shadow-xl animate-pop-in space-y-4';
+                emoji.textContent = '🎉';
+                title.textContent = 'Hebat, Penjelajah! (+10 Poin)';
+                title.className = 'text-xl sm:text-2xl font-bold font-title mb-1 text-emerald-700';
+            } else {
+                selectedBtn.classList.add('wrong', 'animate-shake');
+                playTone('wrong');
+
+                panel.className = 'rounded-3xl p-5 sm:p-6 border-4 border-rose-300 bg-rose-50 text-rose-950 shadow-xl animate-pop-in space-y-4';
+                emoji.textContent = '🧭';
+                title.textContent = 'Hampir Tepat! Mari Kita Cek Jawabannya';
+                title.className = 'text-xl sm:text-2xl font-bold font-title mb-1 text-rose-700';
+            }
+
+            desc.textContent = q.explanation;
+            funFact.textContent = q.funFact;
+            panel.classList.remove('hidden');
+
+            setTimeout(() => {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        /**
+         * Pindah ke Soal Berikutnya atau Layar Akhir
+         */
+        function nextQuestion() {
+            if (currentIdx < QUESTIONS.length - 1) {
+                currentIdx++;
+                updateHUD();
+                loadQuestion();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                showResult();
+            }
+        }
+
+        /**
+         * Menampilkan Layar Hasil & Predikat Penjelajah
+         */
+        function showResult() {
+            playTone('finish');
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('hud-panel').classList.add('hidden');
+            document.getElementById('screen-result').classList.remove('hidden');
+
+            document.getElementById('final-score').textContent = score;
+
+            const starsEl = document.getElementById('result-stars');
+            const rankEl = document.getElementById('result-rank');
+            const summaryEl = document.getElementById('result-summary');
+
+            if (score >= 80) {
+                starsEl.innerHTML = '<span>⭐</span><span>⭐</span><span>⭐</span>';
+                rankEl.textContent = 'Penjelajah Utama Nusantara!';
+                summaryEl.textContent = 'Luar biasa! Kamu sangat memahami ciri-ciri bentang alam Indonesia, manfaatnya bagi penduduk, serta cara melestarikannya.';
+            } else if (score >= 50) {
+                starsEl.innerHTML = '<span>⭐</span><span>⭐</span><span class="opacity-25">⭐</span>';
+                rankEl.textContent = 'Penjelajah Muda Hebat!';
+                summaryEl.textContent = 'Bagus sekali! Kamu sudah mengenal banyak bentang alam Nusantara. Ayo ulangi ekspedisi untuk meraih 3 bintang penuh!';
+            } else {
+                starsEl.innerHTML = '<span>⭐</span><span class="opacity-25">⭐</span><span class="opacity-25">⭐</span>';
+                rankEl.textContent = 'Penjelajah Pemula Semangat!';
+                summaryEl.textContent = 'Terus semangat mengenal kekayaan alam Indonesia! Baca kembali fakta menarik di setiap pos dan coba lagi ya.';
+            }
+        }
+    </script>
+</body>
+</html>
